@@ -284,6 +284,29 @@ function ageSuffix(n) {
   return 'lat';
 }
 
+function zodiac(dateStr) {
+  const [y,m,d] = dateStr.split('-').map(Number);
+  const signs = [
+    { name:'Koziorożec', symbol:'♑', end:[1,19] },
+    { name:'Wodnik',     symbol:'♒', end:[2,18] },
+    { name:'Ryby',       symbol:'♓', end:[3,20] },
+    { name:'Baran',      symbol:'♈', end:[4,19] },
+    { name:'Byk',        symbol:'♉', end:[5,20] },
+    { name:'Bliźnięta',  symbol:'♊', end:[6,20] },
+    { name:'Rak',        symbol:'♋', end:[7,22] },
+    { name:'Lew',        symbol:'♌', end:[8,22] },
+    { name:'Panna',      symbol:'♍', end:[9,22] },
+    { name:'Waga',       symbol:'♎', end:[10,22] },
+    { name:'Skorpion',   symbol:'♏', end:[11,21] },
+    { name:'Strzelec',   symbol:'♐', end:[12,21] },
+    { name:'Koziorożec', symbol:'♑', end:[12,31] },
+  ];
+  for(const s of signs) {
+    if(m < s.end[0] || (m === s.end[0] && d <= s.end[1])) return s;
+  }
+  return signs[0];
+}
+
 function load() {
   try { return JSON.parse(localStorage.getItem('birthdays') || '[]'); } catch(e) { return []; }
 }
@@ -334,7 +357,7 @@ function cardHTML(e) {
     <div class="avatar" style="background:${col.bg};color:${col.text}">${initials(e.name)}</div>
     <div class="card-info">
       <div class="card-name">${e.name}</div>
-      <div class="card-meta">${formatDate(e.date)} · ${a} ${ageSuffix(a)}</div>
+      <div class="card-meta">${formatDate(e.date)} · ${a} ${ageSuffix(a)} · ${zodiac(e.date).symbol} ${zodiac(e.date).name}</div>
     </div>
     ${badge}
     <button class="delete-btn" onclick="deleteEntry('${e.id}')" title="Usuń">×</button>
