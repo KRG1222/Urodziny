@@ -1,0 +1,380 @@
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+<meta name="apple-mobile-web-app-capable" content="yes" />
+<meta name="apple-mobile-web-app-status-bar-style" content="default" />
+<meta name="apple-mobile-web-app-title" content="Urodziny" />
+<title>Urodziny</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  :root {
+    --bg: #ffffff;
+    --bg2: #f5f4f0;
+    --bg3: #eeecea;
+    --text: #1a1a1a;
+    --text2: #666;
+    --text3: #999;
+    --border: rgba(0,0,0,0.1);
+    --border2: rgba(0,0,0,0.18);
+    --radius: 14px;
+    --radius-sm: 9px;
+  }
+
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --bg: #1c1c1e;
+      --bg2: #2c2c2e;
+      --bg3: #3a3a3c;
+      --text: #f2f2f7;
+      --text2: #ababab;
+      --text3: #6e6e73;
+      --border: rgba(255,255,255,0.1);
+      --border2: rgba(255,255,255,0.18);
+    }
+  }
+
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, 'Helvetica Neue', sans-serif;
+    background: var(--bg2);
+    color: var(--text);
+    min-height: 100dvh;
+    padding-bottom: env(safe-area-inset-bottom);
+  }
+
+  .header {
+    background: var(--bg);
+    border-bottom: 0.5px solid var(--border);
+    padding: 16px 20px 14px;
+    padding-top: calc(16px + env(safe-area-inset-top));
+    position: sticky;
+    top: 0;
+    z-index: 10;
+    display: flex;
+    align-items: flex-end;
+    justify-content: space-between;
+  }
+
+  .header-left h1 { font-size: 28px; font-weight: 700; letter-spacing: -0.5px; }
+  .header-left p { font-size: 13px; color: var(--text2); margin-top: 1px; }
+
+  .add-btn {
+    background: var(--text);
+    color: var(--bg);
+    border: none;
+    border-radius: 20px;
+    padding: 8px 16px;
+    font-size: 14px;
+    font-weight: 600;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    gap: 5px;
+  }
+  .add-btn:active { opacity: 0.7; }
+
+  .content { padding: 20px 16px; }
+
+  .section-label {
+    font-size: 12px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.07em;
+    color: var(--text3);
+    margin: 0 4px 8px;
+  }
+
+  .section { margin-bottom: 24px; }
+
+  .card {
+    background: var(--bg);
+    border-radius: var(--radius);
+    padding: 14px 16px;
+    display: flex;
+    align-items: center;
+    gap: 13px;
+    margin-bottom: 2px;
+  }
+  .card:first-of-type { border-radius: var(--radius) var(--radius) var(--radius-sm) var(--radius-sm); }
+  .card:last-of-type  { border-radius: var(--radius-sm) var(--radius-sm) var(--radius) var(--radius); margin-bottom: 0; }
+  .card:only-of-type  { border-radius: var(--radius); }
+
+  .avatar {
+    width: 46px; height: 46px;
+    border-radius: 50%;
+    display: flex; align-items: center; justify-content: center;
+    font-weight: 700; font-size: 15px;
+    flex-shrink: 0;
+  }
+
+  .card-info { flex: 1; min-width: 0; }
+  .card-name { font-size: 16px; font-weight: 500; }
+  .card-meta { font-size: 13px; color: var(--text2); margin-top: 2px; }
+
+  .badge {
+    font-size: 12px; font-weight: 600;
+    padding: 4px 10px;
+    border-radius: 20px;
+    white-space: nowrap;
+    flex-shrink: 0;
+  }
+  .badge-today  { background: #EEEDFE; color: #3C3489; }
+  .badge-soon   { background: #FAEEDA; color: #633806; }
+  .badge-days   { color: var(--text3); font-size: 13px; font-weight: 400; }
+
+  .delete-btn {
+    background: none; border: none; cursor: pointer;
+    color: var(--text3); font-size: 20px; line-height: 1;
+    padding: 4px; flex-shrink: 0;
+  }
+  .delete-btn:active { color: #E24B4A; }
+
+  .empty {
+    text-align: center;
+    padding: 48px 20px;
+    color: var(--text2);
+    font-size: 15px;
+    line-height: 1.6;
+  }
+  .empty-icon { font-size: 48px; margin-bottom: 12px; }
+
+  /* Modal */
+  .overlay {
+    position: fixed; inset: 0;
+    background: rgba(0,0,0,0.5);
+    z-index: 100;
+    display: flex; align-items: flex-end;
+    opacity: 0; pointer-events: none;
+    transition: opacity 0.2s;
+  }
+  .overlay.open { opacity: 1; pointer-events: all; }
+
+  .sheet {
+    background: var(--bg);
+    border-radius: 20px 20px 0 0;
+    padding: 0 20px calc(20px + env(safe-area-inset-bottom));
+    width: 100%;
+    transform: translateY(100%);
+    transition: transform 0.3s cubic-bezier(0.32,0.72,0,1);
+  }
+  .overlay.open .sheet { transform: translateY(0); }
+
+  .sheet-handle {
+    width: 36px; height: 4px;
+    background: var(--bg3);
+    border-radius: 2px;
+    margin: 12px auto 20px;
+  }
+
+  .sheet h2 { font-size: 18px; font-weight: 600; margin-bottom: 20px; }
+
+  .field { margin-bottom: 14px; }
+  .field label { display: block; font-size: 13px; color: var(--text2); margin-bottom: 6px; }
+  .field input {
+    width: 100%;
+    padding: 12px 14px;
+    border-radius: var(--radius-sm);
+    border: 0.5px solid var(--border2);
+    background: var(--bg2);
+    color: var(--text);
+    font-size: 16px;
+    outline: none;
+  }
+  .field input:focus { border-color: #534AB7; }
+
+  .sheet-actions { display: flex; gap: 10px; margin-top: 20px; }
+  .btn-cancel {
+    flex: 1; padding: 13px;
+    border-radius: var(--radius-sm);
+    border: 0.5px solid var(--border2);
+    background: var(--bg2);
+    color: var(--text);
+    font-size: 15px; font-weight: 500; cursor: pointer;
+  }
+  .btn-save {
+    flex: 2; padding: 13px;
+    border-radius: var(--radius-sm);
+    border: none;
+    background: var(--text);
+    color: var(--bg);
+    font-size: 15px; font-weight: 600; cursor: pointer;
+  }
+  .btn-save:active { opacity: 0.8; }
+</style>
+</head>
+<body>
+
+<div class="header">
+  <div class="header-left">
+    <h1>Urodziny 🎂</h1>
+    <p id="today-label"></p>
+  </div>
+  <button class="add-btn" onclick="openModal()">+ Dodaj</button>
+</div>
+
+<div class="content" id="content"></div>
+
+<div class="overlay" id="overlay" onclick="overlayClick(event)">
+  <div class="sheet">
+    <div class="sheet-handle"></div>
+    <h2>Nowa osoba</h2>
+    <div class="field">
+      <label>Imię i nazwisko</label>
+      <input type="text" id="inp-name" placeholder="np. Jan Kowalski" autocomplete="off" />
+    </div>
+    <div class="field">
+      <label>Data urodzin</label>
+      <input type="date" id="inp-date" />
+    </div>
+    <div class="sheet-actions">
+      <button class="btn-cancel" onclick="closeModal()">Anuluj</button>
+      <button class="btn-save" onclick="saveEntry()">Zapisz</button>
+    </div>
+  </div>
+</div>
+
+<script>
+const COLORS = [
+  {bg:'#EEEDFE',text:'#3C3489'},
+  {bg:'#E1F5EE',text:'#085041'},
+  {bg:'#FAECE7',text:'#4A1B0C'},
+  {bg:'#E6F1FB',text:'#0C447C'},
+  {bg:'#FAEEDA',text:'#633806'},
+  {bg:'#FBEAF0',text:'#4B1528'},
+  {bg:'#EAF3DE',text:'#27500A'},
+];
+
+function getColor(name) {
+  let h = 0;
+  for(let c of name) h = (h * 31 + c.charCodeAt(0)) & 0xffffffff;
+  return COLORS[Math.abs(h) % COLORS.length];
+}
+
+function initials(name) {
+  return name.trim().split(/\s+/).slice(0,2).map(w=>w[0].toUpperCase()).join('');
+}
+
+function daysUntil(dateStr) {
+  const [y,m,d] = dateStr.split('-').map(Number);
+  const today = new Date(); today.setHours(0,0,0,0);
+  let next = new Date(today.getFullYear(), m-1, d);
+  if(next < today) next = new Date(today.getFullYear()+1, m-1, d);
+  return Math.round((next - today) / 86400000);
+}
+
+function formatDate(dateStr) {
+  const [y,m,d] = dateStr.split('-').map(Number);
+  const months = ['stycznia','lutego','marca','kwietnia','maja','czerwca','lipca','sierpnia','września','października','listopada','grudnia'];
+  return `${d} ${months[m-1]} ${y}`;
+}
+
+function calcAge(dateStr) {
+  const [y,m,d] = dateStr.split('-').map(Number);
+  const today = new Date();
+  let a = today.getFullYear() - y;
+  if(today.getMonth()+1 < m || (today.getMonth()+1===m && today.getDate()<d)) a--;
+  return a;
+}
+
+function ageSuffix(n) {
+  if(n===1) return 'rok';
+  if(n>=2 && n<=4) return 'lata';
+  return 'lat';
+}
+
+function load() {
+  try { return JSON.parse(localStorage.getItem('birthdays') || '[]'); } catch(e) { return []; }
+}
+function save(data) {
+  localStorage.setItem('birthdays', JSON.stringify(data));
+}
+
+let entries = load();
+
+function render() {
+  const today = new Date();
+  const days = ['niedziela','poniedziałek','wtorek','środa','czwartek','piątek','sobota'];
+  const months = ['stycznia','lutego','marca','kwietnia','maja','czerwca','lipca','sierpnia','września','października','listopada','grudnia'];
+  document.getElementById('today-label').textContent = `${days[today.getDay()]}, ${today.getDate()} ${months[today.getMonth()]}`;
+
+  const container = document.getElementById('content');
+  if(entries.length === 0) {
+    container.innerHTML = `<div class="empty"><div class="empty-icon">🎈</div>Brak zapisanych urodzin.<br>Dodaj pierwszą osobę!</div>`;
+    return;
+  }
+
+  const sorted = entries.map(e => ({...e, days: daysUntil(e.date)})).sort((a,b) => a.days - b.days);
+  const upcoming = sorted.filter(e => e.days <= 30);
+  const rest = sorted.filter(e => e.days > 30);
+
+  let html = '';
+  if(upcoming.length) {
+    html += `<div class="section"><div class="section-label">Nadchodzące</div>`;
+    upcoming.forEach(e => html += cardHTML(e));
+    html += `</div>`;
+  }
+  if(rest.length) {
+    html += `<div class="section"><div class="section-label">Pozostałe</div>`;
+    rest.forEach(e => html += cardHTML(e));
+    html += `</div>`;
+  }
+  container.innerHTML = html;
+}
+
+function cardHTML(e) {
+  const col = getColor(e.name);
+  const a = calcAge(e.date);
+  let badge = '';
+  if(e.days === 0) badge = `<span class="badge badge-today">Dzisiaj!</span>`;
+  else if(e.days <= 7) badge = `<span class="badge badge-soon">za ${e.days} dni</span>`;
+  else badge = `<span class="badge-days">${e.days} dni</span>`;
+  return `<div class="card">
+    <div class="avatar" style="background:${col.bg};color:${col.text}">${initials(e.name)}</div>
+    <div class="card-info">
+      <div class="card-name">${e.name}</div>
+      <div class="card-meta">${formatDate(e.date)} · ${a} ${ageSuffix(a)}</div>
+    </div>
+    ${badge}
+    <button class="delete-btn" onclick="deleteEntry('${e.id}')" title="Usuń">×</button>
+  </div>`;
+}
+
+function openModal() {
+  document.getElementById('inp-name').value = '';
+  document.getElementById('inp-date').value = '';
+  document.getElementById('overlay').classList.add('open');
+  setTimeout(() => document.getElementById('inp-name').focus(), 300);
+}
+
+function closeModal() {
+  document.getElementById('overlay').classList.remove('open');
+}
+
+function overlayClick(ev) {
+  if(ev.target === document.getElementById('overlay')) closeModal();
+}
+
+function saveEntry() {
+  const name = document.getElementById('inp-name').value.trim();
+  const date = document.getElementById('inp-date').value;
+  if(!name || !date) return;
+  entries.push({ id: Date.now().toString(), name, date });
+  save(entries);
+  closeModal();
+  render();
+}
+
+function deleteEntry(id) {
+  if(!confirm('Usunąć tę osobę?')) return;
+  entries = entries.filter(e => e.id !== id);
+  save(entries);
+  render();
+}
+
+document.addEventListener('keydown', e => { if(e.key==='Escape') closeModal(); });
+render();
+</script>
+</body>
+</html>
